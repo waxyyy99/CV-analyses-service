@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+      build: ./frontend
+      working_dir: /app
+      volumes:
+        - ./frontend:/app  # Монтируем код для hot-reload
+        - /app/node_modules  # node_modules из образа (не перезаписываем локальными)
+      ports:
+        - "8080:5173"  # Прокидываем на хост
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+
+  ml:
+    build: ./ml
+    ports:
+      - "5001:5000"
