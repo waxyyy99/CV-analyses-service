@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+      build: ./frontend  # Билдим из Dockerfile в ./frontend (измени путь, если Dockerfile в другом месте)
+      working_dir: /app
+      volumes:
+        - ./frontend:/app  # Монтируем код для hot-reload
+        - /app/node_modules  # node_modules из образа (не перезаписываем локальными)
+      ports:
+        - "3000:5173"  # Прокидываем на хост
+      stdin_open: true  # Для интерактива в dev
+      tty: true
