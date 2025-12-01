@@ -1,0 +1,52 @@
+ИВАН ПЕТРОВ
++7 (999) 123-45-67
+ivan.petrov@email.com
+LinkedIn: linkedin.com/in/ivanpetrov
+
+ПРОФЕССИОНАЛЬНЫЙ ПРОФИЛЬ
+Опытный Full-Stack разработчик с 5+ годами стажа в создании веб-приложений. Специализируюсь на Node.js и React. Успешно запустил 15+ проектов для стартапов и крупных компаний.
+
+ОПЫТ РАБОТЫ
+
+Senior Full-Stack Developer
+TechCorp Solutions | Москва | 2022 - настоящее время
+• Разработал микросервисную архитектуру на Node.js для обработки 100K+ запросов в день
+• Оптимизировал производительность React приложения, снизив Time to Interactive на 40%
+• Руководил командой из 4 разработчиков при разработке нового продукта
+• Внедрил CI/CD pipeline с использованием GitHub Actions и Docker
+• Способствовал росту выручки продукта на 35% за счет улучшения UX
+
+Middle Full-Stack Developer
+WebDev Agency | Санкт-Петербург | 2020 - 2022
+• Разработал 12 веб-приложений для клиентов из различных отраслей
+• Внедрил систему аутентификации и авторизации на базе JWT
+• Оптимизировал SQL запросы, улучшив скорость обработки на 50%
+• Менторил 3 junior разработчиков
+
+Junior Developer
+StartupLab | Москва | 2019 - 2020
+• Разработал фронтенд приложения на React и Redux
+• Создал REST API на Express.js с PostgreSQL
+• Участвовал в code review и внедрении best practices
+
+ОБРАЗОВАНИЕ
+Бакалавр, Информатика
+МГТУ им. Баумана | Москва | 2019
+
+КЛЮЧЕВЫЕ НАВЫКИ
+Языки программирования: JavaScript, TypeScript, Python, SQL
+Фронтенд: React, Vue.js, HTML5, CSS3, Tailwind CSS
+Бэкенд: Node.js, Express.js, NestJS, Django
+Базы данных: PostgreSQL, MongoDB, Redis
+DevOps: Docker, Docker Compose, GitHub Actions, AWS
+Инструменты: Git, Webpack, Vite, Jest, Postman
+
+СЕРТИФИКАТЫ
+• AWS Solutions Architect Associate (2023)
+• Google Cloud Professional Data Engineer (2022)
+• Advanced React Patterns Course (2021)
+
+ДОСТИЖЕНИЯ
+• Автор 5 популярных npm пакетов с 50K+ загрузками
+• Speaker на 8 технических конференциях
+• Участник Open Source: контрибьютор в React, Node.js экосистему

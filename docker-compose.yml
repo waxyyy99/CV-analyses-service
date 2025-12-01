@@ -1,20 +1,60 @@
 version: '3.8'
 
 services:
-  frontend:
-      build: ./frontend
-      working_dir: /app
-      volumes:
-        - ./frontend:/app  # Монтируем код для hot-reload
-        - /app/node_modules  # node_modules из образа (не перезаписываем локальными)
-      ports:
-        - "8080:5173"  # Прокидываем на хост
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cv_analysis_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-cv_analysis}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
   backend:
     build: ./backend
+    container_name: cv_analysis_backend
     ports:
       - "3000:3000"
+    environment:
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-cv_analysis}
+      JWT_SECRET: ${JWT_SECRET:-your_secret_key_change_in_production}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
 
-  ml:
-    build: ./ml
+  # Frontend
+  frontend:
+    build: ./frontend
+    container_name: cv_analysis_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "5001:5000"
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

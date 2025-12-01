@@ -1,133 +1,102 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Upload, FileText, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from './ui/alert';
+import { Upload, FileText } from 'lucide-react';
 
 interface ResumeUploadProps {
-  onAnalyze: (text: string) => void;
+  onAnalyze: (file: File) => void;
   isAnalyzing: boolean;
 }
 
 export function ResumeUpload({ onAnalyze, isAnalyzing }: ResumeUploadProps) {
-  const [resumeText, setResumeText] = useState('');
-  const [error, setError] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = () => {
-    if (resumeText.trim().length < 50) {
-      setError('Пожалуйста, введите больше информации (минимум 50 символов)');
-      return;
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
     }
-    setError('');
-    onAnalyze(resumeText);
   };
 
-  const handleLoadExample = () => {
-    const exampleResume = `Иванов Иван Иванович
-Email: ivanov@example.com
-Телефон: +7 (999) 123-45-67
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
-ОПЫТ РАБОТЫ
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type === 'application/pdf' || file.type === 'text/plain') {
+        setSelectedFile(file);
+      } else {
+        alert('Only PDF and text files are allowed');
+      }
+    }
+  };
 
-Senior Frontend Developer | Tech Company
-Январь 2021 - настоящее время
-• Разработка и поддержка веб-приложений на React и TypeScript
-• Увеличение производительности приложения на 40% через оптимизацию
-• Внедрение автоматизированного тестирования, покрытие 85%
-• Менторство 3 junior разработчиков
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      setSelectedFile(files[0]);
+    }
+  };
 
-Frontend Developer | Startup Inc.
-Март 2019 - Декабрь 2020
-• Создание пользовательских интерфейсов с использованием React
-• Интеграция с REST API и GraphQL
-• Участие в code review и планировании спринтов
-
-ОБРАЗОВАНИЕ
-
-Московский государственный университет
-Бакалавр, Компьютерные науки, 2015-2019
-
-НАВЫКИ
-
-Языки программирования: JavaScript, TypeScript, Python
-Фреймворки: React, Next.js, Vue.js
-Инструменты: Git, Docker, Webpack, Jest
-Soft skills: Работа в команде, Agile методологии, Английский язык (B2)`;
-
-    setResumeText(exampleResume);
-    setError('');
+  const handleAnalyze = () => {
+    if (selectedFile) {
+      onAnalyze(selectedFile);
+    }
   };
 
   return (
-    <Card className="max-w-4xl mx-auto shadow-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-6 h-6 text-blue-600" />
-          Вставьте текст резюме
-        </CardTitle>
-        <CardDescription>
-          Скопируйте содержимое вашего резюме в текстовое поле ниже для анализа
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative">
-          <Textarea
-            placeholder="Вставьте ваше резюме здесь...&#10;&#10;Включите:&#10;• Контактную информацию&#10;• Опыт работы&#10;• Образование&#10;• Навыки и компетенции"
-            value={resumeText}
-            onChange={(e) => setResumeText(e.target.value)}
-            className="min-h-[400px] resize-y"
+    <div className="max-w-2xl mx-auto">
+      <div
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+          dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'
+        } ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Upload Your Resume</h3>
+        <p className="text-gray-600 mb-4">Drag and drop your PDF or text file, or click to select</p>
+
+        <label className="inline-block">
+          <input
+            type="file"
+            accept=".pdf,.txt"
+            onChange={handleFileChange}
             disabled={isAnalyzing}
+            className="hidden"
           />
-          {resumeText.trim().length > 0 && (
-            <div className="absolute bottom-3 right-3 text-gray-400 pointer-events-none">
-              {resumeText.trim().length} символов
+          <span className="bg-blue-600 text-white px-6 py-2 rounded-lg cursor-pointer hover:bg-blue-700 inline-block">
+            Select File
+          </span>
+        </label>
+      </div>
+
+      {selectedFile && (
+        <div className="mt-6 bg-white rounded-lg p-6 shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText className="w-6 h-6 text-blue-600" />
+            <div>
+              <p className="font-semibold text-gray-800">{selectedFile.name}</p>
+              <p className="text-sm text-gray-600">{(selectedFile.size / 1024).toFixed(2)} KB</p>
             </div>
-          )}
-        </div>
+          </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <div className="flex gap-3 flex-wrap">
-          <Button
-            onClick={handleSubmit}
-            disabled={isAnalyzing || resumeText.trim().length === 0}
-            className="flex-1 min-w-[200px]"
-            size="lg"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Анализируем...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 mr-2" />
-                Анализировать резюме
-              </>
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleLoadExample}
+          <button
+            onClick={handleAnalyze}
             disabled={isAnalyzing}
-            size="lg"
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
           >
-            Загрузить пример
-          </Button>
+            {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
+          </button>
         </div>
-
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-          <p className="text-blue-900">
-            💡 <span className="ml-1">Совет:</span> Для наилучшего результата включите всю информацию из вашего резюме: контакты, опыт работы, образование, навыки и достижения.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

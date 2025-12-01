@@ -1,21 +1,25 @@
-# Базовый образ: Node.js 18 на Alpine (лёгкий)
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine as builder
 
-# Рабочая директория
 WORKDIR /app
 
-# Копируем package.json и package-lock.json (для кэширования deps)
 COPY package*.json ./
+RUN npm install
 
-# Устанавливаем зависимости (только один раз при билде)
-RUN npm i
+COPY . .
 
-# Копируем весь код проекта
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
 # Открываем порт для Vite (5173 внутри контейнера)
 EXPOSE 5173
 
-# Команда запуска: dev-режим с host и без автооткрытия
+CMD ["npm", "run", "dev", "--", "--host"]
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--open", "false"]
+
+# CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--open", "false"]
