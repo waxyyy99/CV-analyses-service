@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
-import { ResumeUpload } from './components/ResumeUpload';
+import { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthForm } from './components/AuthForm';
+import { FileUpload } from './components/FileUpload';
 import { ResumeAnalysis } from './components/ResumeAnalysis';
-import { Auth } from './components/Auth';
-import { History } from './components/History';
-import { FileText, LogOut, History as HistoryIcon } from 'lucide-react';
-import { api } from './api';
+import { AnalysisHistory } from './components/AnalysisHistory';
+import { Button } from './components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { FileText, LogOut, User } from 'lucide-react';
+import { toast, Toaster } from 'sonner@2.0.3';
+import { API_ENDPOINTS } from './config/api';
 
 export interface ResumeScore {
   overall: number;
@@ -24,122 +28,162 @@ export interface ResumeScore {
   }[];
 }
 
-export default function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [userId, setUserId] = useState<string | null>(localStorage.getItem('userId'));
-  const [userName, setUserName] = useState<string | null>(localStorage.getItem('userName'));
-  const [currentView, setCurrentView] = useState<'upload' | 'analysis' | 'history'>('upload');
+function MainApp() {
+  const { user, logout, token, isAuthenticated } = useAuth();
+  const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<ResumeScore | null>(null);
-  const [resumeId, setResumeId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleLogin = (newToken: string, newUserId: string, name: string) => {
-    setToken(newToken);
-    setUserId(newUserId);
-    setUserName(name);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('userId', newUserId);
-    localStorage.setItem('userName', name);
-  };
-
-  const handleLogout = () => {
-    setToken(null);
-    setUserId(null);
-    setUserName(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    setCurrentView('upload');
-    setAnalysis(null);
-  };
-
-  const handleAnalyze = async (file: File) => {
-    if (!token) return;
+  const handleUploadSuccess = async (resumeId: string, extractedText: string) => {
+    setCurrentResumeId(resumeId);
     setIsAnalyzing(true);
 
     try {
-      // Upload resume
-      const uploadRes = await api.uploadResume(file, token);
-      setResumeId(uploadRes.resumeId);
+      const response = await fetch(API_ENDPOINTS.ANALYZE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ resumeId }),
+      });
 
-      // Analyze
-      const analysisRes = await api.analyzeResume(uploadRes.resumeId, token);
-      setAnalysis(analysisRes as ResumeScore);
-      setCurrentView('analysis');
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      alert('Analysis failed: ' + (error as Error).message);
+      if (!response.ok) {
+        throw new Error('Ошибка анализа');
+      }
+
+      const data = await response.json();
+      
+      // Transform API response to match ResumeScore interface
+      const analysisResult: ResumeScore = {
+        overall: data.overall,
+        categories: data.categories,
+        strengths: data.strengths,
+        improvements: data.improvements,
+        detailedFeedback: data.detailedFeedback,
+      };
+
+      setAnalysis(analysisResult);
+      toast.success('Анализ завершен!');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ошибка анализа');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleReset = () => {
-    setAnalysis(null);
-    setResumeId(null);
-    setCurrentView('upload');
+  const handleSelectAnalysis = async (analysisId: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.GET_ANALYSIS(analysisId), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Не удалось загрузить анализ');
+      }
+
+      const data = await response.json();
+      
+      // Transform API response to match ResumeScore interface
+      const analysisResult: ResumeScore = {
+        overall: data.score.overall,
+        categories: data.score.categories,
+        strengths: data.score.strengths,
+        improvements: data.score.improvements,
+        detailedFeedback: data.score.detailedFeedback,
+      };
+
+      setAnalysis(analysisResult);
+      setCurrentResumeId(data.resumeId);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ошибка загрузки анализа');
+    }
   };
 
-  if (!token) {
-    return <Auth onLogin={handleLogin} />;
+  const handleReset = () => {
+    setAnalysis(null);
+    setCurrentResumeId(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAnalysis(null);
+    setCurrentResumeId(null);
+  };
+
+  if (!isAuthenticated) {
+    return <AuthForm />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 max-w-6xl flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-blue-900">Resume Analyzer</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-600">Welcome, {userName}</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentView('history')}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200"
-              >
-                <HistoryIcon className="w-5 h-5" />
-                History
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {currentView === 'upload' && (
-          <>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-blue-900 mb-2">Analyze Your Resume</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <FileText className="w-10 h-10 text-blue-600" />
+            <div>
+              <h1 className="text-blue-900">Оценка Резюме</h1>
               <p className="text-gray-600">
-                Get detailed feedback and recommendations to improve your resume
+                Получите детальный анализ вашего резюме
               </p>
             </div>
-            <ResumeUpload onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />
-          </>
-        )}
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-gray-700">
+              <User className="w-5 h-5" />
+              <span>{user?.name}</span>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Выйти
+            </Button>
+          </div>
+        </div>
 
-        {currentView === 'analysis' && analysis && (
+        {/* Main Content */}
+        {!analysis ? (
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+              <TabsTrigger value="upload">Загрузить резюме</TabsTrigger>
+              <TabsTrigger value="history">История</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="upload">
+              {isAnalyzing ? (
+                <div className="max-w-4xl mx-auto">
+                  <div className="bg-white rounded-lg shadow-xl p-12 text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <h3 className="text-blue-900 mb-2">Анализируем ваше резюме...</h3>
+                    <p className="text-gray-600">Это может занять несколько секунд</p>
+                  </div>
+                </div>
+              ) : (
+                <FileUpload onUploadSuccess={handleUploadSuccess} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="history">
+              <div className="max-w-4xl mx-auto">
+                <AnalysisHistory onSelectAnalysis={handleSelectAnalysis} />
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
           <ResumeAnalysis analysis={analysis} onReset={handleReset} />
         )}
-
-        {currentView === 'history' && token && (
-          <History token={token} onSelectAnalysis={(analysis) => {
-            setAnalysis(analysis);
-            setCurrentView('analysis');
-          }} />
-        )}
       </div>
+      <Toaster />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }

@@ -5,18 +5,6 @@
 
   export default defineConfig({
     plugins: [react()],
-    server: {
-      host: '0.0.0.0',
-      port: 5173,
-      open: false,
-      proxy: {
-        '/api': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
-        },
-      },
-    },
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
@@ -64,5 +52,17 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+    },
+    server: {
+      host: '0.0.0.0',
+      port: 5173,
+      open: false,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+      },
     },
   });
