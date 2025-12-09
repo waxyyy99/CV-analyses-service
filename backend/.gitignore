@@ -40,3 +40,7 @@ Desktop.ini
 # Vite-специфичные (если используешь плагины)
 .cache
 .eslintcache
+
+# Тесты и покрытие
+coverage/
+*.lcov

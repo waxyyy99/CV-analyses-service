@@ -2,23 +2,23 @@ version: '3.8'
 
 services:
   # PostgreSQL Database
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: cv_analysis_db
-  #   environment:
-  #     POSTGRES_USER: ${DB_USER:-postgres}
-  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-  #     POSTGRES_DB: ${DB_NAME:-cv_analysis}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - ./backend/migrations:/docker-entrypoint-initdb.d
-  #   ports:
-  #     - "5430:5432"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  postgres:
+    image: postgres:15-alpine
+    container_name: cv_analysis_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-cv_analysis}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5430:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Backend API
   backend:
@@ -34,9 +34,9 @@ services:
       DB_NAME: ${DB_NAME:-cv_analysis}
       JWT_SECRET: ${JWT_SECRET:-your_secret_key_change_in_production}
       PORT: 3000
-    # depends_on:
-    #   postgres:
-    #     condition: service_healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
