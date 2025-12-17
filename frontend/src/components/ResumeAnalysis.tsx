@@ -12,6 +12,11 @@ interface ResumeAnalysisProps {
 }
 
 export function ResumeAnalysis({ analysis, onReset }: ResumeAnalysisProps) {
+  const safeScore = (value: any): number => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+  
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'text-green-600';
     if (score >= 6) return 'text-yellow-600';
@@ -34,6 +39,8 @@ export function ResumeAnalysis({ analysis, onReset }: ResumeAnalysisProps) {
 
   // Convert 0-10 score to percentage for progress bar
   const scoreToPercent = (score: number) => (score / 10) * 100;
+
+  const overallScore = safeScore(analysis.overall);
 
   return (
     <div className="space-y-6">
@@ -62,7 +69,7 @@ export function ResumeAnalysis({ analysis, onReset }: ResumeAnalysisProps) {
           <div className="space-y-2">
             <Progress value={scoreToPercent(analysis.overall)} className="h-3" />
             <p className={`text-center ${getScoreColor(analysis.overall)}`}>
-              {analysis.overall.toFixed(1)}/10
+              {overallScore.toFixed(1)}/10
             </p>
           </div>
         </CardContent>
