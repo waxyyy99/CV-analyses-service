@@ -115,29 +115,29 @@ Frontend will run on `http://localhost:5173`
 ## Features Implemented
 
 ### Backend
-✅ JWT Authentication (register, login)
-✅ File upload (PDF, text)
-✅ Mock ML analysis with scoring:
-  - Structure (0-10)
-  - Content (0-10)
-  - Keywords (0-10)
-  - Formatting (0-10)
-  - Experience (0-10)
-✅ Analysis history
-✅ Error handling and validation
-✅ CORS support
+- JWT Authentication (register, login)  
+- File upload (PDF, text) 
+- Mock ML analysis with scoring:
+    - Structure (0-10)
+    - Content (0-10)
+    - Keywords (0-10)
+    - Formatting (0-10)
+    - Experience (0-10)  
+- Analysis history  
+- Error handling and validation  
+- CORS support
 
 ### Frontend
-✅ Authentication pages (register/login)
-✅ Drag-and-drop file upload
-✅ Resume analysis results with charts
-✅ Detailed feedback and recommendations
-✅ Analysis history view
-✅ Responsive design
-✅ Clean UI with Tailwind CSS
+- Authentication pages (register/login)  
+- Drag-and-drop file upload
+- Resume analysis results with charts
+- Detailed feedback and recommendations
+- Analysis history view
+- Responsive design
+- Clean UI with Tailwind CSS
 
 ### Database
-✅ PostgreSQL schema with tables:
+- PostgreSQL schema with tables:
   - users
   - resumes
   - analyses
